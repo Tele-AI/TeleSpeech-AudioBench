@@ -1,5 +1,6 @@
 import soundfile as sf
 import scipy.signal
+from typing import Dict
 from src.evaluator.asr_eval import BaseASREvaluator
 from src.utils import parallel_batch
 
@@ -7,7 +8,7 @@ class SpeechTextConsistencyEvaluator(BaseASREvaluator):
     """
     Compare model's text output vs ASR transcription of generated audio.
     """
-
+    REQUIRED_FIELDS = {"key", "prediction", "pred_audio"}
     def __init__(self, model: str, language="zh", max_workers=None):
         super().__init__(language)
         self.max_workers = max_workers or 4
@@ -34,12 +35,14 @@ class SpeechTextConsistencyEvaluator(BaseASREvaluator):
             return self.processor.batch_decode(pred_ids, skip_special_tokens=True)[0]
 
     @parallel_batch(default_workers=4)
-    def evaluate(self, pred: str, ref: str, pred_info: dict, **kwargs):
-        truth = pred
-        audio_path = pred_info["pred_audio"]
+    def evaluate(self, pred_info: Dict, fields: Dict, **kwargs):
+        f = self.get_fields(fields)
+        truth = pred_info[f["prediction"]]
+        audio_path = pred_info[f["pred_audio"]]
+        
         hypo = self.run_asr(audio_path)
         score = self.compute_score(hypo, truth, uncased=True, simplified_zh=True)
         return {
-            "key": pred_info["key"],
+            "key": pred_info[f["key"]],
             **score,
         }

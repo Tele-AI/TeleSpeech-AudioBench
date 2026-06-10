@@ -63,6 +63,7 @@ class DialectSession:
         return self.DIALECT_TOKENS[int(pred)]
 
 class DialectClassify(Evaluator):
+    REQUIRED_FIELDS = {"pred_audio", "key", "dialect"}
     def __init__(self, model: str, max_workers=None):
         if max_workers is not None:
             self.max_workers = max_workers
@@ -73,11 +74,14 @@ class DialectClassify(Evaluator):
         }
     
     @parallel_batch(default_workers=4)
-    def evaluate(self, pred: str, ref: str, pred_info: Dict, **kwargs):
-        pred_audio = pred_info["pred_audio"]
+    def evaluate(self, pred_info: Dict, fields: Dict, **kwargs):
+        f = self.get_fields(fields)
+        ref_dialect  = pred_info[f["dialect"]]
+        pred_audio = pred_info[f["pred_audio"]]
+        
         res = self.onnx_sess.classify(pred_audio)
         mapped_dialect = self.dialect_mapping.get(res, None)
-        logger.info(f"key: {pred_info['key']} recognition dialect: {mapped_dialect}")
+        logger.info(f"key: {pred_info[f["key"]]} recognition dialect: {mapped_dialect}")
 
-        score = int(mapped_dialect == ref) if mapped_dialect else 0
-        return {"key": pred_info["key"], "score": score}
+        score = int(mapped_dialect == ref_dialect) if mapped_dialect else 0
+        return {"key": pred_info[f["key"]], "score": score}

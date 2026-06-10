@@ -3,7 +3,6 @@ import regex
 import re
 import json
 from collections import Counter
-from src.config import RefsType
 
 class OptionExtractor:
     RAW_OPTION = r'(?P<option>[A-Da-d])(?![A-Za-z0-9])'
@@ -30,7 +29,6 @@ class OptionExtractor:
 
     NEGATIVE_HINTS     = ["错误(?:的)?", "错误(?:说法)?", "错误(?:选项)?", "错误(?:叙述|选项|描述|陈述)?",
                           "不正确(?:的)?", "不对", "无效", "不合理", "不符合", "有问题", "不当"]
-  
     # —— summary (the first) ——  
     NEG_INDICATOR = rf"(?:{'|'.join(NEGATIVE_HINTS)})"
     ANSWER_VERBS_RE = rf"(?:{'|'.join(ANSWER_VERBS)})"
@@ -209,7 +207,7 @@ class SimpleTokenizer(object):
         return new_tokens
     
     @classmethod
-    def has_answer(cls, refs: RefsType, pred: str, uncased=True, keep_punc=False) -> bool:
+    def has_answer(cls, refs, pred: str, uncased=True, keep_punc=False) -> bool:
         pred_tokens = cls.tokenize(pred, uncased, keep_punc)
         def match(candidate):
             if isinstance(candidate, str):
@@ -233,24 +231,3 @@ class SimpleTokenizer(object):
             if candidate_tokens == tokens[i: i + len(candidate_tokens)]:
                 return True
         return False
-
-class LLMExtractor(object):
-    LLM_EXPLAIN = re.compile(r'["\s]*Explanation["\s]*:\s*"([\s\S]*?)"(?=\s*("Score":|,|\}|\n))')
-    LLM_SCORE = re.compile(r'["\s]*score["\s]*:\s*"?([0-9]+(?:\.[0-9]+)?)"?', re.IGNORECASE)  # support float type
-
-    @classmethod
-    def extract(cls, llm_output, explain_col, score_col):
-        # NOTE (TTTdas): use int to down rounding
-        try:
-            cleaned_str = llm_output.strip("```json").strip("```")
-            output_json = json.loads(cleaned_str)
-            explain, score = output_json[explain_col], int(output_json[score_col])
-        except Exception as e:
-            explain_match = cls.LLM_EXPLAIN.search(llm_output)
-            score_match = cls.LLM_SCORE.search(llm_output)
-            if explain_match and score_match:
-                score, explain = int(score_match.group(1)), explain_match.group(1)
-            else:
-                raise e
-                # return None, None
-        return score, explain

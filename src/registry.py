@@ -62,7 +62,8 @@ class Registry:
                     f"Closest matches: {difflib.get_close_matches(name, d.keys(), n=5)}"
                 )
             )
-            raise ValueError(f"Error object {object} '{name}': {e}")
+            raise ValueError(f"Error object {object} '{name}'")
+            # return None
 
         logger.debug(f"Looking for {name}")
 
@@ -102,6 +103,7 @@ class Registry:
         return self._dereference(name, self._summarizer, "summarizer", **kwargs)
 
     def _load_file(self, path: Path) -> Generator[Tuple[str, Path, dict], None, None]:
+        # from https://github.com/openai/evals/blob/main/evals/registry.py
         with open(path, "r", encoding="utf-8") as f:
             d = yaml.safe_load(f.read())
 
@@ -115,6 +117,7 @@ class Registry:
     def _load_directory(
         self, path: Path
     ) -> Generator[Tuple[str, Path, dict], None, None]:
+        # from https://github.com/openai/evals/blob/main/evals/registry.py
         files = Path(path).glob("*.yaml")
         for file in files:
             yield from self._load_file(file)
@@ -122,6 +125,7 @@ class Registry:
     def _load_resources(
         self, registry_path: Path, resource_type: str
     ) -> Generator[Tuple[str, Path, dict], None, None]:
+        # from https://github.com/openai/evals/blob/main/evals/registry.py
         path = registry_path / resource_type
         logging.info(f"Loading registry from {path}")
 
@@ -133,6 +137,7 @@ class Registry:
 
     @staticmethod
     def _validate_reserved_keywords(spec: dict, name: str, path: Path) -> None:
+        # from https://github.com/openai/evals/blob/main/evals/registry.py
         for reserved_keyword in SPEC_RESERVED_KEYWORDS:
             if reserved_keyword in spec:
                 raise ValueError(
@@ -142,6 +147,7 @@ class Registry:
     def _load_registry(
         self, registry_paths: Sequence[Path], resource_type: str
     ) -> RawRegistry:
+        # from https://github.com/openai/evals/blob/main/evals/registry.py
         """Load registry from a list of regstry paths and a specific resource type
 
         Each path includes yaml files which are a dictionary of name -> spec.

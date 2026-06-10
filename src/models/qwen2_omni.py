@@ -22,7 +22,7 @@ class Qwen2Omni(Model):
             attn_implementation="flash_attention_2",
         )
         # self.model.disable_talker()
-
+        self.system_prompt = "You are Qwen, a virtual human developed by the Qwen Team, Alibaba Group, capable of perceiving auditory and visual inputs, as well as generating text and speech."
         self.processor = Qwen2_5OmniProcessor.from_pretrained(path)
         self.REGEX_HEAD = re.compile(r".*assistant\n", re.DOTALL | re.IGNORECASE)
         
@@ -43,7 +43,7 @@ class Qwen2Omni(Model):
 
 
     def _generate(self, conversation, output_audio_path):
-        generate_audio = output_audio_path is not None
+        return_audio = output_audio_path is not None
         text = self.processor.apply_chat_template(conversation, add_generation_prompt=True, tokenize=False)
         audios, images, videos = process_mm_info(conversation, use_audio_in_video=True)
         inputs = self.processor(
@@ -53,13 +53,13 @@ class Qwen2Omni(Model):
 
         outputs = self.model.generate(
             **inputs, 
-            use_audio_in_video=True, 
-            return_audio=generate_audio, 
+            use_audio_in_video=True,
+            return_audio=return_audio, 
             speaker="Chelsie",
             **self.generation_config
         ) # speaker="Chelsie" or "Ethan"
 
-        if generate_audio:
+        if return_audio:
             response = self.processor.batch_decode(outputs[0], skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]  # batch
             audio = outputs[1]
             sf.write(output_audio_path, audio.reshape(-1).detach().cpu().numpy(), samplerate=24000)
@@ -75,7 +75,7 @@ class Qwen2Omni(Model):
             {
                 "role": "system",
                 "content": [
-                    {"type": "text", "text": "You are Qwen, a virtual human developed by the Qwen Team, Alibaba Group, capable of perceiving auditory and visual inputs, as well as generating text and speech."}
+                    {"type": "text", "text": self.system_prompt}
                 ],
             },
             {
@@ -89,15 +89,15 @@ class Qwen2Omni(Model):
         return {"pred": pred, "pred_audio": kwargs.get("pred_audio")}
 
     def generate_multiturn(self, audio, user_history, assistant_history, **kwargs):
+        instruction = kwargs.get("instruct", "")
         output_audio_path = kwargs.get("pred_audio", None)
-
         conversation = [
            {
                 "role": "system",
                 "content": [
                     {
                         "type": "text", 
-                        "text": "You are Qwen, a virtual human developed by the Qwen Team, Alibaba Group, capable of perceiving auditory and visual inputs, as well as generating text and speech."
+                        "text": self.system_prompt
                     }
                 ],
             },

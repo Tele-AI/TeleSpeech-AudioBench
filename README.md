@@ -16,7 +16,8 @@
 </p>
 
 ## 更新
-- [Update Jul. 25, 2025] 🔥 技术报告已更新
+- [Update Jun. 10, 2026] 🔥 框架更新
+- [Update Jul. 25, 2025] 技术报告已更新
 - [Update Jun. 5, 2025] 测评代码与数据均已开放
 
 ## 简介
@@ -33,7 +34,7 @@ TELEVAL不仅衡量模型是否正确完成用户意图（Reliable Content Fulfi
 - **多语种与多方言数据支持 🌏**：评测数据以中文普通话为主，同时涵盖英文问答与多种中文方言（如粤语、河南话、东北话、上海话、四川话等）。
 - **模块化评测框架 🔧**：完整的模型推理与结果评估框架，推理与评估流程解耦，便于自定义模型、任务与数据集。
 
-## 支持的模型与综合得分
+## 已有的模型与综合得分
 | Rank | Model | Average Score (%)  |
 |:--:|:-----:|:-------:|
 | 🥇 | [Qwen3-Omni](https://github.com/QwenLM/Qwen3-Omni) | 53.46 |
@@ -97,17 +98,20 @@ bash run.sh  # stage=1
 
 ### 保存目录结构
 模型推理、测评结果自动保存如下
-```text
-- $save_dir
+```
+$save_dir
     ├── prediction
     │   └── $model
+    │     └── $infer_task
     │       └── ${dataset}.jsonl
     ├── result
     │   └── $model
-    │       └── ${dataset}_${eval_task}.jsonl
+    │     └── $infer_task
+    │       └── ${dataset}.${eval_task}.jsonl
     ├── summary
     │   └── $model
-    │       └── ${dataset}_${eval_task}.jsonl
+    │     └── $infer_task
+    │       └── ${dataset}.${eval_task}.jsonl
     └── results.csv
 ```
 

@@ -1,7 +1,6 @@
 from typing import Dict
 import librosa
 import numpy as np
-import onnxruntime as ort
 import soundfile as sf
 from src.evaluator.base import Evaluator
 from src.utils import parallel_batch
@@ -14,6 +13,7 @@ class ComputeScore:
     from https://github.com/microsoft/DNS-Challenge/blob/master/DNSMOS/dnsmos_local.py
     """
     def __init__(self, primary_model_path) -> None:
+        import onnxruntime as ort
         self.onnx_sess = ort.InferenceSession(primary_model_path)
         
     def audio_melspec(self, audio, n_mels=120, frame_size=320, hop_length=160, sr=16000, to_db=True):
@@ -80,13 +80,15 @@ class ComputeScore:
         return clip_dict
     
 class DNSMOS(Evaluator):
+    REQUIRED_FIELDS = {"key", "pred_audio"}
     def __init__(self, model: str, max_workers=None):
         if max_workers is not None:
             self.max_workers = max_workers
         self.compute_score = ComputeScore(model)
 
     @parallel_batch(default_workers=4)
-    def evaluate(self, pred: str, ref: str, pred_info: Dict, **kwargs):
-        pred_audio = pred_info["pred_audio"]
+    def evaluate(self, pred_info: Dict, fields: Dict, **kwargs):
+        f = self.get_fields(fields)
+        pred_audio = pred_info[f["pred_audio"]]
         res = self.compute_score(pred_audio, SAMPLING_RATE)
-        return {"key": pred_info["key"], "score": res["OVRL"]}
+        return {"key": pred_info[f["key"]], "score": res["OVRL"]}

@@ -8,7 +8,6 @@ import torch
 import torchaudio
 from io import BytesIO
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import functools
 import os
 import pandas as pd
 from datasets import load_dataset
@@ -74,21 +73,30 @@ def retry(max_retries=3, sleep_second=5, default=None):
 def parallel_batch(default_workers=4):
     def decorator(func):
         @functools.wraps(func)
-        def wrapper(self, preds: List[Any], refs: List[Any], pred_info_list: List[Any], **kwargs):
-            if not (isinstance(preds, list) and isinstance(refs, list) and isinstance(pred_info_list, list)):
-                raise ValueError("Input type must be Batch-List")
-            if not (len(preds) == len(refs) == len(pred_info_list)):
-                raise ValueError("len of pred, ref, pred_info_list must equal")
-            
-            workers = min(getattr(self, "max_workers", default_workers), len(preds))
-            results = [None] * len(preds)
+        def wrapper(self, pred_info_list: List[Dict], fields: Dict | None = None, **kwargs):
+            if not isinstance(pred_info_list, list):
+                raise ValueError("pred_info_list must be a list")
+
+            workers = min(
+                getattr(self, "max_workers", default_workers),
+                len(pred_info_list),
+            )
+            results = [None] * len(pred_info_list)
 
             with ThreadPoolExecutor(max_workers=workers) as executor:
                 futures = {}
                 # ensure the return order is the same as the input order
-                for i, (pred, ref, pred_info) in enumerate(zip(preds, refs, pred_info_list)):
-                    args = [pred, ref, pred_info]  # NOTE (TTTdas): support to add more args
-                    futures[executor.submit(func, self, *args, **kwargs)] = i
+                for i, pred_info in enumerate(pred_info_list):
+                    futures[
+                        executor.submit(
+                            func,
+                            self,
+                            pred_info=pred_info,
+                            fields=fields,
+                            **kwargs,
+                        )
+                    ] = i
+
                 for future in as_completed(futures):
                     idx = futures[future]
                     results[idx] = future.result()

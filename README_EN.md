@@ -16,7 +16,8 @@
 </p>
 
 ## Updates
-- [Update Jul. 25, 2025] 🔥 Technical report updated
+- [Update Jun. 10, 2026] 🔥 Update v2.0
+- [Update Jul. 25, 2025] Technical report updated
 - [Update Jun. 5, 2025] Evaluation code and datasets released
 
 ## Introduction
@@ -33,7 +34,7 @@ Beyond assessing whether a model correctly fulfills user intent (Reliable Conten
 - **Multilingual & Dialect-rich Data 🌏**: Primarily based on Mandarin Chinese, with additional coverage of English Q&A and multiple Chinese dialects (e.g., Cantonese, Henan, Northeastern, Shanghainese, Sichuanese).
 - **Modular Evaluation Framework 🔧**: Provides a complete pipeline for model inference and result evaluation, with decoupled inference and scoring stages, enabling reuse of existing model outputs and easy customization of models, tasks, and datasets.
 
-## Supported SLMs and Leaderboard
+## Current SLMs and Leaderboard
 | Rank | Model | Average Score (%)  |
 |:--:|:-----:|:-------:|
 | 🥇 | [Qwen3-Omni](https://github.com/QwenLM/Qwen3-Omni) | 53.46 |
@@ -102,17 +103,20 @@ The framework also supports evaluating external results (without running Stage 1
 ### Directory Structure
 
 Model predictions and evaluation results are automatically saved in the following structure:
-```text
-- $save_dir
+```
+$save_dir
     ├── prediction
     │   └── $model
+    │     └── $infer_task
     │       └── ${dataset}.jsonl
     ├── result
     │   └── $model
-    │       └── ${dataset}_${eval_task}.jsonl
+    │     └── $infer_task
+    │       └── ${dataset}.${eval_task}.jsonl
     ├── summary
     │   └── $model
-    │       └── ${dataset}_${eval_task}.jsonl
+    │     └── $infer_task
+    │       └── ${dataset}.${eval_task}.jsonl
     └── results.csv
 ```
 

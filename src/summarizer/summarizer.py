@@ -5,45 +5,72 @@ from collections import Counter
 logger = logging.getLogger(__name__)
 
 class Summarizer:
-    def __init__(self, rescale="base", power=2, reverse=False):
-        rescale_map = {
-            "base": lambda x: x,
-            "linear": self.linear_rescale,
-            "power": lambda x: self.power_rescale(x, power=power)
-        }
+    def __init__(self, rescale="base", power=2, score_scale=5, reverse=False):
         logger.info(f"Using rescale type: {rescale}")
-        self.rescale_func = rescale_map[rescale]
+        self.rescale = rescale
+        self.power = power
+        self.score_scale = score_scale
         self.reverse = reverse
+
+        if rescale == "base":
+            self.rescale_func = self._rescale_base
+        elif rescale == "power":
+            self.rescale_func = self._rescale_power
+        else:
+            raise ValueError(f"Unknown rescale type: {rescale}")
     
     def _check_scores(self, scores: List[Any]):
         if any(s is None for s in scores if not isinstance(s, dict)):
             raise ValueError("Scores list contains None values, need re-run evaluator.")
-
-    @staticmethod
-    def linear_rescale(score):
-        return score * 20
-
-    @staticmethod
-    def power_rescale(score, power):
-        return ((score / 5) ** power) * 100
+    
+    def _rescale_base(self, score):
+        return score
+    
+    def _rescale_power(self, score):
+        if self.score_scale <= 0:
+            raise ValueError("score_scale must be positive")
+        return ((score / self.score_scale) ** self.power) * 100
 
     def statistic(self, scores: List[Any], **kwargs) -> Dict[str, Any]:
         raise NotImplementedError
 
+class Avg(Summarizer):
+    def statistic(self, scores: List[float], **kwargs):
+        values = [self.rescale_func(float(s)) for s in scores]
+        avg = sum(values) / len(values)
+        return {"score": "AVG: {:.2f}%".format(avg)}
+
 class AvgInfo(Summarizer):
+    def statistic(self, scores: List[Union[float, Dict[str, float]]], **kwargs):
+        keys = next(s for s in scores if isinstance(s, dict)).keys()
+        result = {}
+        for k in keys:
+            values = [
+                self.rescale_func(float(s[k])) if isinstance(s, dict) else 0.0
+                for s in scores
+            ]
+            avg = sum(values) / len(values)
+            result[k] = "{:.2f}%".format(avg)
+
+        return result
+
+class AvgHumanDialChallenge(Summarizer):
     def statistic(self, scores: List[Union[float, Dict[str, float]]], **kwargs):
         if isinstance(scores[0], dict):
             keys = scores[0].keys()
             result = {}
+            avg_cnt = 0
             for key in keys:
                 values = [float(s[key]) for s in scores if key in s]
-                avg = sum(values) / len(values) * 100
-                result[key] = "{}: {:.2f}%".format(key, avg)
+                avg = sum(values) / len(values)
+                result[key] = "{:.2f}".format(avg)
+                avg_cnt += avg
+            
+            result["avg_all_score"] = "{:.2f}".format(avg_cnt / len(keys))
             return result
-        
-        # common
-        avg = sum(map(float, scores)) / len(scores) * 100
-        return {"score": "AVG: {:.2f}%".format(avg)}
+        else:
+            raise ValueError(f"Error format for scores: {type(scores[0])}")
+
 
 class AvgThreshold(Summarizer):
     def __init__(self, rescale, threshold=60, power=2):
@@ -52,7 +79,8 @@ class AvgThreshold(Summarizer):
     
     def statistic(self, scores: List[float], **kwargs):
         self._check_scores(scores)
-        scores = list(map(lambda x: self.rescale_func(float(x)), scores))
+        # scores = list(map(lambda x: self.rescale_func(float(x)), scores))
+        scores = [self.rescale_func(float(x)) for x in scores]
         score_count = Counter(scores)
 
         avg = sum(scores) / len(scores)

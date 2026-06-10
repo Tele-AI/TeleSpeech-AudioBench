@@ -9,3 +9,8 @@ single_option_match:
   args:
     max_workers: 1
     cushion: True
+
+asr_zh:
+  class: src.evaluator.asr_eval.ASRAccuracyEvaluator
+  args: 
+    language: zh

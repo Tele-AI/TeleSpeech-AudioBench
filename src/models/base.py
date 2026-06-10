@@ -3,6 +3,7 @@ import soundfile as sf
 import os
 import torch
 from typing import Any, Union, Dict, List, Tuple
+from src.prompt.system_prompt import get_system_prompts
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +17,10 @@ class Model:
         self.sample_params = sample_params
         self.mono_only = True
         self.inputs_sr = 16000
+        self.system_prompt = None
+        self.stable_system_prompt = False
+        self._system_prompt_initialized = False
+        self._default_system_prompt = None
 
     @torch.inference_mode()
     def inference(self, inputs: Union[List[Union[List[Dict], Dict]]], **kwargs) -> Union[str, Dict[int, str], List[str]]:
@@ -24,11 +29,15 @@ class Model:
         :param kwargs: other configs, e.g. pred_audio, use_model_history
         """
         def _generate(inputs, **kwargs):
+            self._init_default_system_prompt()
             if kwargs.get("pred_audio"):
                 base, ext = os.path.splitext(os.path.basename(kwargs["pred_audio"]))
                 dir_path = os.path.dirname(kwargs["pred_audio"])
 
             processed_input = self._process_inputs(inputs)
+            self.system_prompt = self.resolve_task_prompt(kwargs.get("task_prompt"))
+            logger.info(f"Resolved system prompt for generation: {self.system_prompt}")
+
             if processed_input["type"] == "single_turn":
                 # processed_input: {"type": "single_turn", "audio": audio, "query": query, "assistant": assistant_text, "instruct": instruct_text}
                 results = self.generate_once(**processed_input, **kwargs)
@@ -109,13 +118,30 @@ class Model:
             ]
         else:
             return _generate(inputs, **kwargs)
-    
+
+    def resolve_task_prompt(self, task_prompt_name):
+        # Priority: task prompt > dataset prompt(/instruct) > model default system prompt.
+        if task_prompt_name is None:
+            return self._default_system_prompt
+        try:
+            resolved_task_prompt = get_system_prompts(task_prompt_name)
+        except Exception as e:
+            raise KeyError(f"Error when loading {task_prompt_name} prompt, need to be defined first!!")
+
+        return self._default_system_prompt + resolved_task_prompt if self.stable_system_prompt else resolved_task_prompt
 
     def generate_once(self, audio: str, **kwargs) -> str:
         raise NotImplementedError
 
     def generate_multiturn(self, audio: str, user_history: List[Any], assistant_history: List[Any], **kwargs) -> str:
         raise NotImplementedError
+
+    def _init_default_system_prompt(self):
+        if self._system_prompt_initialized:
+            return
+        self._default_system_prompt = getattr(self, "system_prompt", None)  # load from SLM
+        logger.info(f"Setting default system prompt to {self._default_system_prompt}")
+        self._system_prompt_initialized = True
 
     def _split_kwargs(self, kwargs: dict, idx: int) -> dict:
         new_kwargs = {}

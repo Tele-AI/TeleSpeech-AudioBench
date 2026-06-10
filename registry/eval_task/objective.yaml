@@ -6,9 +6,24 @@ basic:
   args:
     evaluator: exist_match
     summarizer: Avg
+    fields:
+      prediction: pred        # jsonl 里 prediction 的字段名
+      reference: answer
 
 choice:
   class: src.config.EvalTaskCfg
   args:
     evaluator: single_option_match
     summarizer: Avg
+    fields:
+      prediction: pred
+      reference: answer
+
+asr:
+  class: src.config.EvalTaskCfg
+  args:
+    evaluator: asr_zh
+    summarizer: AvgWER
+    fields:
+      prediction: pred
+      reference: query

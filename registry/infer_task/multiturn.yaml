@@ -9,3 +9,14 @@ multiturn-memory-zh:
     reverse_spkr: False
     use_model_history: True
     save_latest_only: True
+
+multiturn-chitchat-zh:
+  class: src.config.InferTaskCfg
+  args:
+    dataset: multiturn_chitchat-zh
+    template: multiturn-audio
+    model: qwen2_5_omni
+    save_pred_audio: False
+    eval_task: multiturn_fluency
+    reverse_spkr: False
+    use_model_history: True

@@ -11,6 +11,10 @@ AvgInfoHundred:
     rescale: power
     power: 1
 
+AvgHumanDialChallenge: 
+  class: src.summarizer.summarizer.AvgHumanDialChallenge
+  args: {}
+
 AvgThreshold:
   class: src.summarizer.summarizer.AvgThreshold
   args:

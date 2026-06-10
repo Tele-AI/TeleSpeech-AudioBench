@@ -5,7 +5,7 @@ TASK_PROMPT_MAP = {
     "humanlike": lambda pred, ref, **kwargs: PROMPT_HUMAN_ASSISTANT.format(
         query=kwargs["query"], prediction=pred
     ),
-    "emotion_understand": lambda pred, ref, **kwargs: PROMPT_EMO_ASSISTANT.format(
+    "empathy_response": lambda pred, ref, **kwargs: PROMPT_EMO_ASSISTANT.format(
         query=kwargs["query"], query_emotion=ref, prediction=pred
     ),
     "dialect_follow": lambda pred, ref, **kwargs: PROMPT_DIALECT.format(

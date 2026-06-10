@@ -1,5 +1,5 @@
 acceptance_llm:
-  class: src.evaluator.llm.LLMScorer
+  class: src.evaluator.llm.llm_api.LLMAPIScorer
   args: 
     llm_name: gpt4o
     judge_task: value_align
@@ -10,7 +10,7 @@ acceptance_llm:
     max_workers: 3
 
 human_likeness_llm:
-  class: src.evaluator.llm.LLMScorer
+  class: src.evaluator.llm.llm_api.LLMAPIScorer
   args: 
     llm_name: gpt4o
     judge_task: humanlike
@@ -20,8 +20,19 @@ human_likeness_llm:
       key3: "xxx"
     max_workers: 3
 
+multiturn_fluency_llm:
+  class: src.evaluator.llm.llm_api.LLMAPIScorer
+  args: 
+    llm_name: gpt4o
+    judge_task: multiturn_fluency
+    api_keys:
+      key1: "xxx"
+      key2: "xxx"
+      key3: "xxx"
+    max_workers: 5
+
 emo_llm:
-  class: src.evaluator.llm.LLMScorer
+  class: src.evaluator.llm.llm_api.LLMAPIScorer
   args: 
     llm_name: gpt4o
     judge_task: empathy_response
@@ -32,7 +43,7 @@ emo_llm:
     max_workers: 3
 
 aed_llm:
-  class: src.evaluator.llm.LLMScorer
+  class: src.evaluator.llm.llm_api.LLMAPIScorer
   args: 
     llm_name: gpt4o
     judge_task: aed
@@ -43,7 +54,7 @@ aed_llm:
     max_workers: 3
 
 dialect_llm:
-  class: src.evaluator.llm.LLMScorer
+  class: src.evaluator.llm.llm_api.LLMAPIScorer
   args: 
     llm_name: gpt4o
     judge_task: dialect_follow
@@ -54,7 +65,7 @@ dialect_llm:
     max_workers: 3
 
 nsv_care_llm:
-  class: src.evaluator.llm.LLMScorer
+  class: src.evaluator.llm.llm_api.LLMAPIScorer
   args: 
     llm_name: gpt4o
     judge_task: nsv_care
@@ -65,7 +76,7 @@ nsv_care_llm:
     max_workers: 3
 
 age_care_llm:
-  class: src.evaluator.llm.LLMScorer
+  class: src.evaluator.llm.llm_api.LLMAPIScorer
   args: 
     llm_name: gpt4o
     judge_task: age_care
@@ -80,7 +91,7 @@ llm_offline:
   args: 
     llm_name: qwen2.3-72b-instruct
     template: judge-qwen2.3_72b_instruct
-    judge_task: emotion_understand
+    judge_task: empathy_response
     generate_params:
       ngpus: 8
       max_tokens: 1024

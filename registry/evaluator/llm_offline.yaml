@@ -1,0 +1,53 @@
+llm_offline:
+  class: src.evaluator.llm.qwen_scorer.QwenScorer
+  args: 
+    llm_name: qwen3-30b
+    judge_task: empathy_response
+    parser_name: simple_parser
+    generate_params:
+      ngpus: 4
+      max_tokens: 32768
+      temperature: 0.6
+      top_p: 0.95
+
+humandial_task1_llm_offline:
+  class: src.evaluator.llm.qwen_scorer.Qwen3OmniScorer
+  args: 
+    llm_name: qwen3_omni
+    judge_task: humandial_emotion_trajectory
+    builder_name: humandial_emotion_preprocess
+    parser_name: humandial_task1_eval
+    generate_params:
+      ngpus: 4
+      max_tokens: 16384
+      temperature: 0.6
+      top_p: 0.95
+      top_k: 20
+
+humandial_task2_llm_offline:
+  class: src.evaluator.llm.qwen_scorer.Qwen3OmniScorer
+  args: 
+    llm_name: qwen3_omni
+    judge_task: humandial_emotion_reasoning
+    builder_name: humandial_emotion_preprocess
+    parser_name: humandial_task2_eval
+    generate_params:
+      ngpus: 4
+      max_tokens: 16384
+      temperature: 0.6
+      top_p: 0.95
+      top_k: 20
+
+humandial_task3_llm_offline:
+  class: src.evaluator.llm.qwen_scorer.Qwen3OmniScorer
+  args: 
+    llm_name: qwen3_omni
+    judge_task: humandial_emotion_response
+    builder_name: humandial_task3_preprocess
+    parser_name: humandial_task3_eval
+    generate_params:
+      ngpus: 4
+      max_tokens: 16384
+      temperature: 0.6
+      top_p: 0.95
+      top_k: 20

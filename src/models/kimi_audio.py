@@ -58,4 +58,19 @@ class Kimi(Model):
         return {"pred": text, "pred_audio": kwargs.get("pred_audio")}
     
     def generate_multiturn(self, audio, user_history, assistant_history, **kwargs):
-        raise NotImplementedError("Waiting for Kimi-audio debug...")
+        messages = []
+        assistant_his_audio = kwargs.get("assistant_his_audio", [])
+        for uh, ah, aha in zip(user_history, assistant_history, assistant_his_audio):
+            messages.append({"role": "user", "message_type": "audio", "content": uh})
+            messages.append({"role": "assistant", "message_type": "audio-text", "content": [aha, ah]})
+        messages.append({"role": "user", "message_type": "audio", "content": audio})
+
+        wav, text = self.model.generate(messages, **self.generation_config, output_type="both")
+        if kwargs.get("pred_audio"):
+            sf.write(
+                kwargs["pred_audio"],
+                wav.detach().cpu().view(-1).numpy(),
+                24000,
+            )
+   
+        return {"pred": text, "pred_audio": kwargs.get("pred_audio")}

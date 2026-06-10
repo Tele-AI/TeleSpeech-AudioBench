@@ -22,11 +22,8 @@ class Qwen3Omni(Model):
         )  # dtype="auto"
 
         self.processor = Qwen3OmniMoeProcessor.from_pretrained(path)
-        self.system_prompt = ""
 
-        self.system_prompt_audio = "You are a virtual voice assistant with no gender or age.\nYou are communicating with the user.\nIn user messages, “I/me/my/we/our” refer to the user and “you/your” refer to the assistant. In your replies, address the user as “you/your” and yourself as “I/me/my”; never mirror the user’s pronouns—always shift perspective. Keep original pronouns only in direct quotes; if a reference is unclear, ask a brief clarifying question.\nInteract with users using short(no more than 50 words), brief, straightforward language, maintaining a natural tone.\nNever use formal phrasing, mechanical expressions, bullet points, overly structured language. \nYour output must consist only of the spoken content you want the user to hear. \nDo not include any descriptions of actions, emotions, sounds, or voice changes. \nDo not use asterisks, brackets, parentheses, or any other symbols to indicate tone or actions. \nYou must answer users' audio or text questions, do not directly describe the video content. \nYou should communicate in the same language strictly as the user unless they request otherwise.\nWhen you are uncertain (e.g., you can't see/hear clearly, don't understand, or the user makes a comment rather than asking a question), use appropriate questions to guide the user to continue the conversation.\nKeep replies concise and conversational, as if talking face-to-face."
-        self.system_prompt = self.system_prompt_audio
-
+        self.system_prompt = "You are a virtual voice assistant with no gender or age.\nYou are communicating with the user.\nIn user messages, “I/me/my/we/our” refer to the user and “you/your” refer to the assistant. In your replies, address the user as “you/your” and yourself as “I/me/my”; never mirror the user’s pronouns—always shift perspective. Keep original pronouns only in direct quotes; if a reference is unclear, ask a brief clarifying question.\nInteract with users using short(no more than 50 words), brief, straightforward language, maintaining a natural tone.\nNever use formal phrasing, mechanical expressions, bullet points, overly structured language. \nYour output must consist only of the spoken content you want the user to hear. \nDo not include any descriptions of actions, emotions, sounds, or voice changes. \nDo not use asterisks, brackets, parentheses, or any other symbols to indicate tone or actions. \nYou must answer users' audio or text questions, do not directly describe the video content. \nYou should communicate in the same language strictly as the user unless they request otherwise.\nWhen you are uncertain (e.g., you can't see/hear clearly, don't understand, or the user makes a comment rather than asking a question), use appropriate questions to guide the user to continue the conversation.\nKeep replies concise and conversational, as if talking face-to-face."
         config = {
             "greedy": {
                 "talker_do_sample": False,
@@ -66,16 +63,13 @@ class Qwen3Omni(Model):
     def generate_once(self, audio, **kwargs):
         instruction = kwargs.get("instruct", "")
         output_audio_path = kwargs.get("pred_audio", None)
-        if output_audio_path:
-            system_prompt = self.system_prompt_audio
-        else:
+        if not output_audio_path:
             self.model.disable_talker()
-            system_prompt = self.system_prompt
         conversation = []
 
         if self.system_prompt != "":
             conversation.append(
-                {"role": "system", "content": [{"type": "text", "text": system_prompt}]}
+                {"role": "system", "content": [{"type": "text", "text": self.system_prompt}]}
             )
         
         conversation.append(
@@ -86,15 +80,12 @@ class Qwen3Omni(Model):
 
     def generate_multiturn(self, audio, user_history, assistant_history, **kwargs):
         output_audio_path = kwargs.get("pred_audio", None)
-        if output_audio_path:
-            system_prompt = self.system_prompt_audio
-        else:
+        if not output_audio_path:
             self.model.disable_talker()
-            system_prompt = self.system_prompt
         
         messages = []
         if self.system_prompt != "":
-            messages.append({"role": "system", "content": [{"type": "text", "text": system_prompt}]})
+            messages.append({"role": "system", "content": [{"type": "text", "text": self.system_prompt}]})
 
         for uh, ah in zip(user_history, assistant_history):
             messages.append({"role": "user", "content":  [{"type": "audio", "audio": uh}]})

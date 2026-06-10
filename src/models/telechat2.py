@@ -37,6 +37,7 @@ class TeleChat2(Model):
         content = kwargs["query"]
         
         messages = [
+            {"role": "system", "content": self.system_prompt},
             {"role": "user", "content": content}
         ]
         text = self.tokenizer.apply_chat_template(

@@ -4,7 +4,11 @@ empathy_response-acoustic:
     dataset: empathy_response_acoustic-zh
     template: zeroshot-aqa
     model: qwen2_5_omni
-    eval_task: emotion_understand  # ["empathetic_response", "modal_consistency", "dnsmos", "empathetic_response_audio"]
+    eval_task:
+      - empathetic_response
+      - modal_consistency
+      - dnsmos
+      - empathetic_response_audio
     save_pred_audio: True
 
 empathy_response-lexical:
@@ -13,7 +17,11 @@ empathy_response-lexical:
     dataset: empathy_response_lexical-zh
     template: zeroshot-aqa
     model: qwen2_5_omni
-    eval_task: emotion_understand  # ["empathetic_response", "modal_consistency", "dnsmos", "empathetic_response_audio"]
+    eval_task:
+      - empathetic_response
+      - modal_consistency
+      - dnsmos
+      - empathetic_response_audio
     save_pred_audio: True
 
 nsv_aware_response-zh:
@@ -22,7 +30,9 @@ nsv_aware_response-zh:
     dataset: para_mix300-zh
     template: zeroshot-aqa
     model: qwen2_5_omni
-    eval_task: care_nsv  # ["care_nsv", "basic"]
+    eval_task:
+      - basic
+      - care_nsv
     save_pred_audio: False
 
 age_aware_response-zh:

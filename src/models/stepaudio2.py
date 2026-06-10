@@ -33,7 +33,7 @@ class StepAudio2(Model):
             }
         }
         # self.sys_prompt = "你的名字叫做小跃，是由阶跃星辰公司训练出来的语音大模型。\n你情感细腻，观察能力强，擅长分析用户的内容，并作出善解人意的回复，说话的过程中时刻注意用户的感受，富有同理心，提供多样的情绪价值。\n今天是2025年10月28日，星期二\n请用默认女声与用户交流。"
-        self.sys_prompt = "You are a helpful assistant."  # stable prompt
+        self.system_prompt = "You are a helpful assistant."  # stable prompt
         self.generation_config = config.get(self.sample_params.get("gen_type", "greedy"), None)
         logger.info("generation_config: {}".format(self.generation_config))
 
@@ -52,14 +52,14 @@ class StepAudio2(Model):
         if kwargs.get("pred_audio"):
             # speech-to-speech
             messages = [
-                {"role": "system", "content": self.sys_prompt},
+                {"role": "system", "content": self.system_prompt},
                 {"role": "human", "content": [{"type": "audio", "audio": audio}]},
                 {"role": "assistant", "content": "<tts_start>", "eot": False}
             ]
         else:
             # speech-to-text
             messages = [
-                {"role": "system", "content": self.sys_prompt},
+                {"role": "system", "content": self.system_prompt},
                 {"role": "human", "content": [{"type": "audio", "audio": audio}]},
                 {"role": "assistant", "content": None}
             ]
@@ -68,7 +68,7 @@ class StepAudio2(Model):
         return {"pred": text, "pred_audio": kwargs.get("pred_audio")}
 
     def generate_multiturn(self, audio, user_history, assistant_history, **kwargs):
-        messages = [{"role": "system", "content": self.sys_prompt}]
+        messages = [{"role": "system", "content": self.system_prompt}]
         if len(user_history) > 0:
             for inp_audio, history_tokens in zip(user_history, kwargs["cache"]):
                 messages.append({"role": "human", "content": [{"type": "audio", "audio": inp_audio}]})

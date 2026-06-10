@@ -27,8 +27,11 @@ class Qwen2Instruct(Model):
                 "top_p": None
             }
         }
+        self.think = self.sample_params.get("think", False)
         self.generation_config = config.get(self.sample_params.get("gen_type", "greedy"), None)
         logger.info("generation_config: {}".format(self.generation_config))
+        logger.info("using think: {}".format(self.think))
+
         self.system_prompt_qwen2 = "You are a helpful assistant."
         self.system_prompt_qwen2d5 = "You are Qwen, created by Alibaba Cloud. You are a helpful assistant."
 
@@ -62,19 +65,20 @@ class Qwen3Instruct(Qwen2Instruct):
     def __init__(self, path: str, sample_params: Dict[str, Any] = None):
         # transformers>=4.51.0
         super().__init__(path, sample_params)
+        self.system_prompt = None
 
     def generate_once(self, audio, **kwargs):
         content = kwargs.get("instruct", "") + kwargs["query"]
         
         messages = [
+            {"role": "system", "content": self.system_prompt},
             {"role": "user", "content": content}
         ]
-
         text = self.tokenizer.apply_chat_template(
             messages,
             tokenize=False,
             add_generation_prompt=True,
-            enable_thinking=False # Switches between thinking and non-thinking modes. Default is True.
+            enable_thinking=self.think
         )
         model_inputs = self.tokenizer([text], return_tensors="pt").to(self.model.device)
 
@@ -83,5 +87,12 @@ class Qwen3Instruct(Qwen2Instruct):
             **self.generation_config
         )
         output_ids = generated_ids[0][len(model_inputs.input_ids[0]):].tolist()
-        response = self.tokenizer.decode(output_ids, skip_special_tokens=True)
+        # parsing thinking content
+        try:
+            # rindex finding 151668 (</think>)
+            index = len(output_ids) - output_ids[::-1].index(151668)
+        except ValueError:
+            index = 0
+        thinking_content = self.tokenizer.decode(output_ids[:index], skip_special_tokens=True).strip("\n")
+        response = self.tokenizer.decode(output_ids[index:], skip_special_tokens=True).strip("\n")
         return {"pred": response}

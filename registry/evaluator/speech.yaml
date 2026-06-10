@@ -1,8 +1,9 @@
 paraformer-zh:
-  class: src.evaluator.asr.ASR
+  class: src.evaluator.consistency.SpeechTextConsistencyEvaluator
   args:
     model: paraformer-zh # path/to/speech_paraformer-large-vad-punc_asr_nat-zh-cn-16k-common-vocab8404-pytorch
     max_workers: 1
+    language: zh
 
 MS-DNSMOS:
   class: src.evaluator.dnsmos.DNSMOS
@@ -11,7 +12,7 @@ MS-DNSMOS:
     max_workers: 1
 
 emo2vec-large:
-  class: src.evaluator.emo2vec.Emo2vec
+  class: src.evaluator.emotion.Emo2vec
   args:
     model: iic/emotion2vec_plus_large  # path/to/emotion2vec_large
     strict: True

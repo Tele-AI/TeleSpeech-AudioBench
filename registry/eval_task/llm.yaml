@@ -11,6 +11,12 @@ aed_instruct:
     evaluator: aed_llm
     summarizer: AvgThreshold
 
+multiturn_fluency:
+  class: src.config.EvalTaskCfg
+  args:
+    evaluator: multiturn_fluency_llm
+    summarizer: AvgThreshold
+
 dialect_response:
   class: src.config.EvalTaskCfg
   args:
@@ -40,3 +46,24 @@ care_age:
   args:
     evaluator: age_care_llm
     summarizer: AvgThreshold
+
+humandial_task1:
+  class: src.config.EvalTaskCfg
+  args:
+    evaluator: humandial_task1_llm
+    summarizer: AvgHumanDialChallenge
+    batch_size: 150
+
+humandial_task2:
+  class: src.config.EvalTaskCfg
+  args:
+    evaluator: humandial_task2_llm
+    summarizer: AvgHumanDialChallenge
+    batch_size: 150
+
+humandial_task3:
+  class: src.config.EvalTaskCfg
+  args:
+    evaluator: humandial_task3_llm_offline
+    summarizer: AvgHumanDialChallenge
+    batch_size: 150

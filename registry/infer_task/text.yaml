@@ -201,7 +201,7 @@ text-empathy_response-acoustic:
     dataset: empathy_response_acoustic-zh
     template: text-emo
     model: qwen2-7b-instruct
-    eval_task: emotion_understand
+    eval_task: empathy_response
 
 text-empathy_response-lexical:
   class: src.config.InferTaskCfg
@@ -209,4 +209,4 @@ text-empathy_response-lexical:
     dataset: empathy_response_lexical-zh
     template: text-emo
     model: qwen2-7b-instruct
-    eval_task: emotion_understand
+    eval_task: empathy_response

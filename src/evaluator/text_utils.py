@@ -39,7 +39,7 @@ class TextProcessor:
                             do_normalize: bool = True,
                             simplified_zh: bool = True,
                             remove_punct: bool = True,
-                            remove_space: bool = True) -> str:
+                            remove_space: bool = False) -> str:
         if simplified_zh:
             text = self.convert_cn(text)
         if do_normalize:
